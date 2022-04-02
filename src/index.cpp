@@ -211,6 +211,9 @@ namespace diskann {
     long long     total_gr_edges = 0;
     size_t        index_size = 0;
     std::ofstream out(std::string(filename), std::ios::binary | std::ios::out);
+    if (!out.is_open()) {
+      throw FileOpenException(filename);
+    }
 
     if (_support_eager_delete)
       if (_eager_done && (!_compacted_order)) {
@@ -296,6 +299,10 @@ namespace diskann {
       return;
     }
     std::ifstream in(filename, std::ios::binary);
+    if (!in.is_open()) {
+      throw FileOpenException(filename);
+    }
+
     size_t        expected_file_size;
     in.read((char *) &expected_file_size, sizeof(_u64));
     in.read((char *) &_width, sizeof(unsigned));
@@ -1613,19 +1620,6 @@ namespace diskann {
     _empty_slots.clear();
     mode = true;
     diskann::cout << "Consolidated the index" << std::endl;
-
-    /*	  for(unsigned i = 0; i < _nd + _num_frozen_pts; i++){
-          int flag = 0;
-          for(unsigned j = 0; j < _final_graph[i].size(); j++)
-            if(_final_graph[i][j] == i){
-              diskann::cout << "Self loop found just after compacting inside the
-       function" << std::endl;
-              flag = 1;
-              break;
-            }
-          if(flag == 1)
-            break;
-        } */
   }
 
   // Do not call reserve_location() if you have not locked _change_lock.

@@ -36,13 +36,17 @@ int main(int argc, char** argv) {
                          " " + std::string(argv[7]) + " " +
                          std::string(argv[8]) + " " + std::string(argv[9]) +
                          " " + std::string(argv[10]);
-    if (std::string(argv[1]) == std::string("float"))
-      build_index<float>(argv[3], argv[4], params.c_str(), metric);
-    else if (std::string(argv[1]) == std::string("int8"))
-      build_index<int8_t>(argv[3], argv[4], params.c_str(), metric);
-    else if (std::string(argv[1]) == std::string("uint8"))
-      build_index<uint8_t>(argv[3], argv[4], params.c_str(), metric);
-    else
-      std::cout << "Error. wrong file type" << std::endl;
+    try {
+      if (std::string(argv[1]) == std::string("float"))
+        build_index<float>(argv[3], argv[4], params.c_str(), metric);
+      else if (std::string(argv[1]) == std::string("int8"))
+        build_index<int8_t>(argv[3], argv[4], params.c_str(), metric);
+      else if (std::string(argv[1]) == std::string("uint8"))
+        build_index<uint8_t>(argv[3], argv[4], params.c_str(), metric);
+      else
+        diskann::cerr << "Error. Unsupported data type" << std::endl;
+    } catch (const std::exception& e) {
+      std::cout << "Build failed.\n" << e.what();
+    }
   }
 }

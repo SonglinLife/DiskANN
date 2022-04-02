@@ -48,8 +48,7 @@ int main(int argc, char** argv) {
               << "data_type<int8/uint8/float>  dist_fn<l2/mips> "
               << "data_file.bin   output_index_file  "
               << "R(graph degree)   L(build complexity)  "
-              << "alpha(graph diameter control)   T(num_threads)"
-              << std::endl;
+              << "alpha(graph diameter control)   T(num_threads)" << std::endl;
     exit(-1);
   }
 
@@ -61,9 +60,9 @@ int main(int argc, char** argv) {
   else if (std::string(argv[ctr]) == std::string("l2"))
     metric = diskann::Metric::L2;
   else {
-    std::cout << "Unsupported distance function. Currently only L2/ Inner "
-                 "Product support."
-              << std::endl;
+    std::cerr << "Unsupported distance function. Currently only L2/ Inner "
+                     "Product support."
+                  << std::endl;
     return -1;
   }
   ctr++;
@@ -75,15 +74,19 @@ int main(int argc, char** argv) {
   const float       alpha = (float) atof(argv[ctr++]);
   const unsigned    num_threads = (unsigned) atoi(argv[ctr++]);
 
-  if (std::string(argv[1]) == std::string("int8"))
-    build_in_memory_index<int8_t>(data_path, metric, R, L, alpha, save_path,
-                                  num_threads);
-  else if (std::string(argv[1]) == std::string("uint8"))
-    build_in_memory_index<uint8_t>(data_path, metric, R, L, alpha, save_path,
+  try {
+    if (std::string(argv[1]) == std::string("int8"))
+      build_in_memory_index<int8_t>(data_path, metric, R, L, alpha, save_path,
+                                    num_threads);
+    else if (std::string(argv[1]) == std::string("uint8"))
+      build_in_memory_index<uint8_t>(data_path, metric, R, L, alpha, save_path,
+                                     num_threads);
+    else if (std::string(argv[1]) == std::string("float"))
+      build_in_memory_index<float>(data_path, metric, R, L, alpha, save_path,
                                    num_threads);
-  else if (std::string(argv[1]) == std::string("float"))
-    build_in_memory_index<float>(data_path, metric, R, L, alpha, save_path,
-                                 num_threads);
-  else
-    std::cout << "Unsupported type. Use float/int8/uint8" << std::endl;
+    else
+      std::cout << "Unsupported type. Use float/int8/uint8" << std::endl;
+  } catch (const std::exception& e) {
+    std::cout << "Build failed.\n" << e.what();
+  }
 }

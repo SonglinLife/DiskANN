@@ -178,10 +178,6 @@ namespace diskann {
 
     data = new T[npts * dim];
     reader.read((char*) data, npts * dim * sizeof(T));
-
-    //    diskann::cout << "Last bytes: "
-    //                  << getValues<T>(data + (npts - 2) * dim, dim);
-    //    diskann::cout << "Finished reading bin file." << std::endl;
   }
 
 #ifdef EXEC_ENV_OLS
@@ -414,14 +410,6 @@ namespace diskann {
       groundtruth[i].resize(gt_count[i]);
       if (gt_count[i]!=0)
       reader.read((char*) groundtruth[i].data(), sizeof(_u32)*gt_count[i]);
-
-// debugging code
-/*      if (i < 10) { 
-      std::cout<<gt_count[i] <<" nbrs, ids: "; 
-        for (auto &x : groundtruth[i])
-          std::cout<<x <<" ";
-        std::cout<<std::endl;
-      } */
    }
   }
 
@@ -507,11 +495,11 @@ namespace diskann {
   inline void load_aligned_bin(MemoryMappedFiles& files,
                                const std::string& bin_file, T*& data,
                                size_t& npts, size_t& dim, size_t& rounded_dim) {
-    diskann::cout << "Reading bin file " << bin_file << " ..." << std::flush;
+    diskann::cout << "Opening bin file " << bin_file << " ..." << std::flush;
     FileContent              fc = files.getContent(bin_file);
     ContentBuf               buf((char*) fc._content, fc._size);
     std::basic_istream<char> reader(&buf);
-
+    
     size_t actual_file_size = fc._size;
     load_aligned_bin_impl(reader, actual_file_size, data, npts, dim,
                           rounded_dim);
@@ -521,7 +509,7 @@ namespace diskann {
   template<typename T>
   inline void load_aligned_bin(const std::string& bin_file, T*& data,
                                size_t& npts, size_t& dim, size_t& rounded_dim) {
-    diskann::cout << "Reading bin file " << bin_file << " ..." << std::flush;
+    diskann::cout << "Opening bin file " << bin_file << " ..." << std::flush;
     // START OLS
     //_u64            read_blk_size = 64 * 1024 * 1024;
     // cached_ifstream reader(bin_file, read_blk_size);
@@ -529,6 +517,9 @@ namespace diskann {
     // END OLS
 
     std::ifstream reader(bin_file, std::ios::binary | std::ios::ate);
+    if (!reader.is_open()) {
+      throw FileOpenException(bin_file);
+    }
     uint64_t      fsize = reader.tellg();
     reader.seekg(0);
 
