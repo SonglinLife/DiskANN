@@ -14,6 +14,7 @@
 #endif
 
 #include "memory_mapper.h"
+#include "ann_exception.h"
 
 template<typename T>
 int build_in_memory_index(const std::string&     data_path,
@@ -21,25 +22,30 @@ int build_in_memory_index(const std::string&     data_path,
                           const unsigned L, const float alpha,
                           const std::string& save_path,
                           const unsigned     num_threads) {
-  diskann::Parameters paras;
-  paras.Set<unsigned>("R", R);
-  paras.Set<unsigned>("L", L);
-  paras.Set<unsigned>(
-      "C", 750);  // maximum candidate set size during pruning procedure
-  paras.Set<float>("alpha", alpha);
-  paras.Set<bool>("saturate_graph", 0);
-  paras.Set<unsigned>("num_threads", num_threads);
+  try {
+    diskann::Parameters paras;
+    paras.Set<unsigned>("R", R);
+    paras.Set<unsigned>("L", L);
+    paras.Set<unsigned>(
+        "C", 750);  // maximum candidate set size during pruning procedure
+    paras.Set<float>("alpha", alpha);
+    paras.Set<bool>("saturate_graph", 0);
+    paras.Set<unsigned>("num_threads", num_threads);
 
-  diskann::Index<T> index(metric, data_path.c_str());
-  auto              s = std::chrono::high_resolution_clock::now();
-  index.build(paras);
-  std::chrono::duration<double> diff =
-      std::chrono::high_resolution_clock::now() - s;
+    diskann::Index<T> index(metric, data_path.c_str());
+    auto              s = std::chrono::high_resolution_clock::now();
+    index.build(paras);
+    std::chrono::duration<double> diff =
+        std::chrono::high_resolution_clock::now() - s;
 
-  std::cout << "Indexing time: " << diff.count() << "\n";
-  index.save(save_path.c_str());
+    std::cout << "Indexing time: " << diff.count() << "\n";
+    index.save(save_path.c_str());
 
-  return 0;
+    return 0;
+  } catch (diskann::FileException& e) {
+    std::cout << std::string(e.what()) << std::endl;
+    return -1;
+  }
 }
 
 int main(int argc, char** argv) {
@@ -61,8 +67,8 @@ int main(int argc, char** argv) {
     metric = diskann::Metric::L2;
   else {
     std::cerr << "Unsupported distance function. Currently only L2/ Inner "
-                     "Product support."
-                  << std::endl;
+                 "Product support."
+              << std::endl;
     return -1;
   }
   ctr++;

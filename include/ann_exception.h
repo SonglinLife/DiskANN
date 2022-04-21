@@ -4,6 +4,7 @@
 #pragma once
 #include <string>
 #include <stdexcept>
+#include <system_error>
 #include "windows_customizations.h"
 
 #ifndef _WINDOWS
@@ -19,12 +20,14 @@ namespace diskann {
                                    const std::string& funcSig,
                                    const std::string& fileName,
                                    unsigned int       lineNum);
+
    private:
-    int          _errorCode;
+    int _errorCode;
   };
 
-  class FileOpenException : public ANNException {
+  class FileException : public ANNException {
    public:
-    DISKANN_DLLEXPORT FileOpenException(const std::string& filename, int errorCode = -1);
+    DISKANN_DLLEXPORT FileException(const std::string& filename,
+                                    std::system_error& e);
   };
 }  // namespace diskann

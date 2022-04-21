@@ -291,8 +291,9 @@ namespace diskann {
     }
   }
 
-  inline void prune_truthset_for_range(const std::string& bin_file, float range, std::vector<std::vector<_u32>> &groundtruth, 
-                            size_t& npts) {
+  inline void prune_truthset_for_range(
+      const std::string& bin_file, float range,
+      std::vector<std::vector<_u32>>& groundtruth, size_t& npts) {
     _u64            read_blk_size = 64 * 1024 * 1024;
     cached_ifstream reader(bin_file, read_blk_size);
     diskann::cout << "Reading truthset file " << bin_file.c_str() << " ..."
@@ -303,8 +304,8 @@ namespace diskann {
     reader.read((char*) &npts_i32, sizeof(int));
     reader.read((char*) &dim_i32, sizeof(int));
     npts = (unsigned) npts_i32;
-    _u64 dim = (unsigned) dim_i32;
-    _u32* ids;
+    _u64   dim = (unsigned) dim_i32;
+    _u32*  ids;
     float* dists;
 
     diskann::cout << "Metadata: #pts = " << npts << ", #dims = " << dim << "..."
@@ -332,7 +333,7 @@ namespace diskann {
 
     ids = new uint32_t[npts * dim];
     reader.read((char*) ids, npts * dim * sizeof(uint32_t));
- 
+
     if (truthset_type == 1) {
       dists = new float[npts * dim];
       reader.read((char*) dists, npts * dim * sizeof(float));
@@ -343,21 +344,25 @@ namespace diskann {
     for (_u32 i = 0; i < npts; i++) {
       groundtruth[i].clear();
       for (_u32 j = 0; j < dim; j++) {
-        if (dists[i*dim + j] <= range) {
-          groundtruth[i].emplace_back(ids[i*dim+j]);
+        if (dists[i * dim + j] <= range) {
+          groundtruth[i].emplace_back(ids[i * dim + j]);
         }
-        min_dist = min_dist > dists[i*dim+j] ? dists[i*dim + j] : min_dist;
-        max_dist = max_dist < dists[i*dim+j] ? dists[i*dim + j] : max_dist;
+        min_dist =
+            min_dist > dists[i * dim + j] ? dists[i * dim + j] : min_dist;
+        max_dist =
+            max_dist < dists[i * dim + j] ? dists[i * dim + j] : max_dist;
       }
-      //std::cout<<groundtruth[i].size() << " " ;
+      // std::cout<<groundtruth[i].size() << " " ;
     }
-    std::cout<<"Min dist: " << min_dist <<", Max dist: "<< max_dist << std::endl;
+    std::cout << "Min dist: " << min_dist << ", Max dist: " << max_dist
+              << std::endl;
     delete[] ids;
     delete[] dists;
   }
 
-
-  inline void load_range_truthset(const std::string& bin_file, std::vector<std::vector<_u32>> &groundtruth, _u64 & gt_num) {
+  inline void load_range_truthset(const std::string&              bin_file,
+                                  std::vector<std::vector<_u32>>& groundtruth,
+                                  _u64&                           gt_num) {
     _u64            read_blk_size = 64 * 1024 * 1024;
     cached_ifstream reader(bin_file, read_blk_size);
     diskann::cout << "Reading truthset file " << bin_file.c_str() << " ..."
@@ -370,18 +375,17 @@ namespace diskann {
 
     gt_num = (_u64) npts_u32;
     _u64 total_res = (_u64) total_u32;
-    
-    diskann::cout << "Metadata: #pts = " << gt_num << ", #total_results = " << total_res << "..."
-                  << std::endl;
+
+    diskann::cout << "Metadata: #pts = " << gt_num
+                  << ", #total_results = " << total_res << "..." << std::endl;
 
     size_t expected_file_size =
-        2*sizeof(_u32) + gt_num*sizeof(_u32) + total_res*sizeof(_u32);
+        2 * sizeof(_u32) + gt_num * sizeof(_u32) + total_res * sizeof(_u32);
 
     if (actual_file_size != expected_file_size) {
       std::stringstream stream;
       stream << "Error. File size mismatch in range truthset. actual size: "
-             << actual_file_size
-             << ", expected: " << expected_file_size;
+             << actual_file_size << ", expected: " << expected_file_size;
       diskann::cout << stream.str();
       throw diskann::ANNException(stream.str(), -1, __FUNCSIG__, __FILE__,
                                   __LINE__);
@@ -389,28 +393,25 @@ namespace diskann {
     groundtruth.clear();
     groundtruth.resize(gt_num);
     std::vector<_u32> gt_count(gt_num);
-    
 
-
-    reader.read((char*) gt_count.data(), sizeof(_u32)*gt_num);
+    reader.read((char*) gt_count.data(), sizeof(_u32) * gt_num);
 
     std::vector<_u32> gt_stats(gt_count);
     std::sort(gt_stats.begin(), gt_stats.end());
- 
-    std::cout<<"GT count percentiles:" << std::endl;
-      for (_u32 p = 0; p < 100; p += 5)
-    std::cout << "percentile " << p << ": "
-              << gt_stats[std::floor((p / 100.0) * gt_num)] << std::endl;
-  std::cout << "percentile 100"
-            << ": " << gt_stats[gt_num - 1] << std::endl;
 
+    std::cout << "GT count percentiles:" << std::endl;
+    for (_u32 p = 0; p < 100; p += 5)
+      std::cout << "percentile " << p << ": "
+                << gt_stats[std::floor((p / 100.0) * gt_num)] << std::endl;
+    std::cout << "percentile 100"
+              << ": " << gt_stats[gt_num - 1] << std::endl;
 
-   for (_u32 i = 0; i < gt_num; i++) {
+    for (_u32 i = 0; i < gt_num; i++) {
       groundtruth[i].clear();
       groundtruth[i].resize(gt_count[i]);
-      if (gt_count[i]!=0)
-      reader.read((char*) groundtruth[i].data(), sizeof(_u32)*gt_count[i]);
-   }
+      if (gt_count[i] != 0)
+        reader.read((char*) groundtruth[i].data(), sizeof(_u32) * gt_count[i]);
+    }
   }
 
 #ifdef EXEC_ENV_OLS
@@ -499,7 +500,7 @@ namespace diskann {
     FileContent              fc = files.getContent(bin_file);
     ContentBuf               buf((char*) fc._content, fc._size);
     std::basic_istream<char> reader(&buf);
-    
+
     size_t actual_file_size = fc._size;
     load_aligned_bin_impl(reader, actual_file_size, data, npts, dim,
                           rounded_dim);
@@ -516,11 +517,16 @@ namespace diskann {
     // size_t actual_file_size = reader.get_file_size();
     // END OLS
 
-    std::ifstream reader(bin_file, std::ios::binary | std::ios::ate);
-    if (!reader.is_open()) {
-      throw FileOpenException(bin_file);
+    std::ifstream reader;
+    reader.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    try {
+      reader.open(bin_file, std::ios::binary | std::ios::ate);
+    } catch (std::system_error& e) {
+      throw new FileException(bin_file, e);
     }
-    uint64_t      fsize = reader.tellg();
+
+    uint64_t fsize = reader.tellg();
     reader.seekg(0);
 
     load_aligned_bin_impl(reader, fsize, data, npts, dim, rounded_dim);
